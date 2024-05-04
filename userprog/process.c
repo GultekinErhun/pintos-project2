@@ -34,7 +34,7 @@ struct process_pid{
   struct list_elem elem;
 };
 
-void process_init(void)
+void processus_init(void)
 {
   ipc_initialiser();
   // the kernel main thread(process) can have children
