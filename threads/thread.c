@@ -141,10 +141,10 @@ thread_tick (int64_t ticks)
 
   struct thread *thread_actuel = thread_current ();
   /* Update statistics. */
-  if (ct == idle_thread)
+  if (thread_actuel == idle_thread)
     idle_ticks++;
 #ifdef USERPROG
-  else if (ct->pagedir != NULL)
+  else if (thread_actuel->pagedir != NULL)
     user_ticks++;
 #endif
   else
