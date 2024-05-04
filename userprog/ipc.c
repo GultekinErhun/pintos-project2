@@ -14,29 +14,29 @@ note that reading/writing can happen in any order (read->write or write->read)
 
 // pipe is identified by a pipe name and a ticket number.
 
-struct write {
+struct ecriture_struct {
     int ticket;
     char *pipe_name;
     int msg; // return value to the reader, supporting only int for now since it's sufficient for the current use cases, and relieve from memory management
     struct list_elem elem;
 };
 
-struct read {
+struct lecture_struct {
     int ticket;
     char *pipe_name;
     struct semaphore sema; // the semaphore sync primitive is used to implement the blocking
     struct list_elem elem;
 };
 
-static struct list write_list;
-static struct list read_list;
+static struct list liste_ecriture;
+static struct list liste_lecture;
 
-void ipc_init(void){
+void ipc_initialiser(void){
     list_init(&read_list);
     list_init(&write_list);
 }
 
-int ipc_pipe_read(char * pipe_name, int ticket){
+int ipc_pipe_lecture(char * pipe_name, int ticket){
   // check whether there is already something written that correspond to the read 
   struct list_elem *e;
   for (e = list_begin (&write_list); e != list_end (&write_list); e = list_next (e))
@@ -73,7 +73,7 @@ int ipc_pipe_read(char * pipe_name, int ticket){
   NOT_REACHED ();
 }
 
-void ipc_pipe_write(char *pipe_name, int ticket, int msg){
+void ipc_pipe_ecriture(char *pipe_name, int ticket, int msg){
   struct write *w= malloc(sizeof(struct write));
   w->ticket = ticket;
   w->pipe_name = pipe_name;
