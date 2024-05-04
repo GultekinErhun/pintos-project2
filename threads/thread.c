@@ -130,8 +130,8 @@ thread_tick (int64_t ticks)
   struct list_elem *e = list_begin (&sleeping_threads);
   while (e != list_end (&sleeping_threads)){
       struct thread *t = list_entry (e, struct thread, elem);
-      if (ticks >= t->wakeup_time){
-        t->wakeup_time = 0; //reset
+      if (ticks >= t->heure_de_reveil){
+        t->heure_de_reveil = 0; //reset
         e = list_remove(e);
         thread_unblock(t);
       }else{
@@ -236,11 +236,11 @@ thread_sleep (int64_t until)
        e = list_next (e))
     {
       struct thread *t = list_entry (e, struct thread, elem);
-      if (until < t->wakeup_time){
+      if (until < t->heure_de_reveil){
         break;
       }
   }
-  thread_current()->wakeup_time = until;
+  thread_current()->heure_de_reveil = until;
   list_insert(e, &thread_current()->elem);
 
   enum intr_level old_level = intr_disable ();
