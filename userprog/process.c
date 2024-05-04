@@ -26,7 +26,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
 static void extract_command_name(char * cmd_string, char *command_name);
 static void extract_command_args(char * cmd_string, char* argv[], int *argc);
-void process_close_all(void);
+void processus_fermer_all(void);
 
 
 struct process_pid{
@@ -71,13 +71,13 @@ process_execute (const char *file_name)
     return -1;
   }
   // update thread with userprog properties
-  struct thread *t = thread_get(tid);
-  t->next_fd = 2;
-  t->prog_name = cmd_name;
-  list_init(&t->desc_table);
+  struct thread *t = thread_obtenir(tid);
+  t->prochain_fd = 2;
+  t->nom_du_prog = cmd_name;
+  list_init(&t->table_des_desc);
   list_init(&t->enfants);
 
-  int status = ipc_pipe_read("exec", tid);
+  int status = ipc_pipe_lecture("exec", tid);
   if (status != -1){
     // add the process as a child
     struct process_pid *p = malloc(sizeof(struct process_pid));
@@ -109,10 +109,10 @@ start_process (void *file_name_)
 
   /* If load failed, quit. */
   if (!success){
-    ipc_pipe_write("exec", thread_tid(), -1);
+    ipc_pipe_ecriture("exec", thread_tid(), -1);
     thread_exit (-1);
   }
-  ipc_pipe_write("exec", thread_tid(), thread_tid());  
+  ipc_pipe_ecriture("exec", thread_tid(), thread_tid());  
   
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
@@ -163,7 +163,7 @@ process_wait (pid_t child_tid)
   if(!process_is_parent_of(child_tid))
     return -1;
   remove_child(child_tid); // hack: remove the child from a process enfants list to make sure a process can't wait for a child twice
-  return ipc_pipe_read("wait", child_tid);
+  return ipc_pipe_lecture("wait", child_tid);
 }
 
 
@@ -172,18 +172,18 @@ void
 process_exit (int status)
 {
   struct thread *cur = thread_current();
-  ipc_pipe_write("wait", cur->tid, status);
+  ipc_pipe_ecriture("wait", cur->tid, status);
   // return if it's a kernel thread
   if(thread_tid() == 1){
     return;
   }
   // close open descriptors;
-  process_close_all();
-  printf("%s: exit(%d)\n", cur->prog_name, status);
+  processus_fermer_all();
+  printf("%s: exit(%d)\n", cur->nom_du_prog, status);
 
   uint32_t *pd;
 
-  //TODO: de-allocate 'enfants' and 'prog_name' attributes
+  //TODO: de-allocate 'enfants' and 'nom_du_prog' attributes
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -233,7 +233,7 @@ typedef uint16_t Elf32_Half;
 #define PE32Ox PRIx32   /* Print Elf32_Off in hexadecimal. */
 #define PE32Hx PRIx16   /* Print Elf32_Half in hexadecimal. */
 
-/* Executable header.  See [ELF1] 1-4 to 1-8.
+/* executable header.  See [ELF1] 1-4 to 1-8.
    This appears at the very beginning of an ELF binary. */
 struct Elf32_Ehdr
   {
@@ -279,7 +279,7 @@ struct Elf32_Phdr
 #define PT_STACK   0x6474e551   /* Stack segment. */
 
 /* Flags for p_flags.  See [ELF3] 2-3 and 2-4. */
-#define PF_X 1          /* Executable. */
+#define PF_X 1          /* executable. */
 #define PF_W 2          /* Writable. */
 #define PF_R 4          /* Readable. */
 
@@ -619,7 +619,7 @@ extract_command_args(char * cmd_string, char* argv[], int *argc)
 
 static int allocate_fd (void)
 {
-  return thread_current()->next_fd++;
+  return thread_current()->prochain_fd++;
 }
 
 struct fd_entry
@@ -633,7 +633,7 @@ static struct fd_entry* get_fd_entry(int fd)
 {
   struct list_elem *e;
   struct fd_entry *fe = NULL;
-  struct list *fd_table = &thread_current()->desc_table;
+  struct list *fd_table = &thread_current()->table_des_desc;
 
   for (e = list_begin (fd_table); e != list_end (fd_table);
        e = list_next (e))
@@ -648,7 +648,7 @@ static struct fd_entry* get_fd_entry(int fd)
   return fe;
 }
 
-int process_open (const char *file_name)
+int processus_ouvrir (const char *file_name)
 {
   struct file * f = filesys_open (file_name);
   if (f == NULL)
@@ -658,12 +658,12 @@ int process_open (const char *file_name)
     return -1;
   fd_entry->fd = allocate_fd();
   fd_entry->file = f;
-  list_push_back(&thread_current()->desc_table, &fd_entry->elem);
+  list_push_back(&thread_current()->table_des_desc, &fd_entry->elem);
 
   return fd_entry->fd;
 }
 
-int process_write(int fd, const void *buffer, unsigned size)
+int processus_ecrire(int fd, const void *buffer, unsigned size)
 {
   if (fd == STDOUT_FILENO){
     putbuf((char *)buffer, (size_t)size);
@@ -674,7 +674,7 @@ int process_write(int fd, const void *buffer, unsigned size)
   return -1;
 }
 
-void process_close (int fd)
+void processus_fermer (int fd)
 {
   if (get_fd_entry(fd) != NULL){
     struct fd_entry *fd_entry = get_fd_entry(fd);
@@ -684,7 +684,7 @@ void process_close (int fd)
   }
 }
 
-int process_read (int fd, void *buffer, unsigned length)
+int processus_lire (int fd, void *buffer, unsigned length)
 {
   if (get_fd_entry(fd) != NULL){
     struct fd_entry *fd_entry = get_fd_entry(fd);
@@ -693,7 +693,7 @@ int process_read (int fd, void *buffer, unsigned length)
   return -1;
 }
 
-int process_filesize (int fd)
+int processus_taille_fichier (int fd)
 {
   if (get_fd_entry(fd) != NULL){
     struct fd_entry *fd_entry = get_fd_entry(fd);
@@ -702,7 +702,7 @@ int process_filesize (int fd)
   return -1;
 }
 
-int process_tell (int fd)
+int processus_position (int fd)
 {
   if (get_fd_entry(fd) != NULL){
     struct fd_entry *fd_entry = get_fd_entry(fd);
@@ -710,7 +710,7 @@ int process_tell (int fd)
   }
   return -1;
 }
-void process_seek (int fd, unsigned position){
+void processus_deplacer (int fd, unsigned position){
   if (get_fd_entry(fd) != NULL){
     struct fd_entry *fd_entry = get_fd_entry(fd);
     file_seek(fd_entry->file, position);
@@ -718,15 +718,15 @@ void process_seek (int fd, unsigned position){
 }
 
 // close all open files (including the executable)
-void process_close_all(void)
+void processus_fermer_all(void)
 {
-  struct list *fd_table = &thread_current()->desc_table;
+  struct list *fd_table = &thread_current()->table_des_desc;
   struct list_elem *e = list_begin (fd_table);
   while (e != list_end (fd_table))
     {
       struct fd_entry *tmp = list_entry (e, struct fd_entry, elem);
       e = list_next (e);
-      process_close(tmp->fd);
+      processus_fermer(tmp->fd);
     }
   // close the executable
   file_close (thread_current()->executable);
