@@ -88,7 +88,7 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-    int64_t wakeup_time;                /* when the thread is sleeping, this indicates the wake up time,
+    int64_t heure_de_reveil;                /* when the thread is sleeping, this indicates the wake up time,
                                           I hate putting this here ):*/
     struct list_elem allelem;           /* List element for all threads list. */
 
@@ -97,11 +97,11 @@ struct thread
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
-    char *prog_name;
+    char *nom_du_prog;
     uint32_t *pagedir;                  /* Page directory. */
-    struct list children;
-    struct list desc_table;
-    int next_fd;
+    struct list enfants;
+    struct list table_des_desc;
+    int prochain_fd;
     struct file *executable; // file structure referring the the executable, used to deny writing to the file as long as the process is running(and close it upon exit)
 #endif
 
@@ -123,7 +123,7 @@ void thread_print_stats (void);
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
-void thread_sleep (int64_t until);
+void thread_sleep (int64_t jusqu_a);
 void thread_block (void);
 void thread_unblock (struct thread *);
 
@@ -146,6 +146,6 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-struct thread *thread_get(tid_t tid);
+struct thread *thread_obtenir(tid_t tid);
 
 #endif /* threads/thread.h */
