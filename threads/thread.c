@@ -38,7 +38,7 @@ static struct thread *initial_thread;
 static struct lock tid_lock;
 
 /* a list that contains sleeping threads */
-static struct list sleeping_threads;
+static struct list threads_endormis;
 
 /* Stack frame for kernel_thread(). */
 struct kernel_thread_frame
@@ -95,7 +95,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
-  list_init(&sleeping_threads);
+  list_init(&threads_endormis);
 
 
   /* Set up a thread structure for the running thread. */
@@ -127,8 +127,8 @@ thread_start (void)
 void
 thread_tick (int64_t ticks)
 {
-  struct list_elem *e = list_begin (&sleeping_threads);
-  while (e != list_end (&sleeping_threads)){
+  struct list_elem *e = list_begin (&threads_endormis);
+  while (e != list_end (&threads_endormis)){
       struct thread *t = list_entry (e, struct thread, elem);
       if (ticks >= t->heure_de_reveil){
         t->heure_de_reveil = 0; //reset
@@ -139,7 +139,7 @@ thread_tick (int64_t ticks)
       }
   }
 
-  struct thread *ct = thread_current ();
+  struct thread *thread_actuel = thread_current ();
   /* Update statistics. */
   if (ct == idle_thread)
     idle_ticks++;
@@ -232,7 +232,7 @@ void
 thread_sleep (int64_t jusqu_a)
 {
   struct list_elem *e;
-  for (e = list_begin (&sleeping_threads); e != list_end (&sleeping_threads);
+  for (e = list_begin (&threads_endormis); e != list_end (&threads_endormis);
        e = list_next (e))
     {
       struct thread *t = list_entry (e, struct thread, elem);
