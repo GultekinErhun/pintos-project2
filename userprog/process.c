@@ -37,8 +37,8 @@ struct process_pid{
 void processus_init(void)
 {
   ipc_initialiser();
-  // the kernel main thread(process) can have children
-  list_init(&thread_current()->children);
+  // the kernel main thread(process) can have enfants
+  list_init(&thread_current()->enfants);
 }
 
 /* Starts a new thread running a user program loaded from
@@ -75,14 +75,14 @@ process_execute (const char *file_name)
   t->next_fd = 2;
   t->prog_name = cmd_name;
   list_init(&t->desc_table);
-  list_init(&t->children);
+  list_init(&t->enfants);
 
   int status = ipc_pipe_read("exec", tid);
   if (status != -1){
     // add the process as a child
     struct process_pid *p = malloc(sizeof(struct process_pid));
     p->pid = status;
-    list_push_back(&thread_current()->children, &p->elem);
+    list_push_back(&thread_current()->enfants, &p->elem);
   }
   return status;
 }
@@ -126,7 +126,7 @@ start_process (void *file_name_)
 
 static bool process_is_parent_of(pid_t pid){
   struct list_elem *e; 
-  for (e = list_begin (&thread_current()->children); e != list_end (&thread_current()->children);
+  for (e = list_begin (&thread_current()->enfants); e != list_end (&thread_current()->enfants);
        e = list_next (e))
     {
       if(list_entry(e, struct process_pid, elem)->pid == pid){
@@ -138,7 +138,7 @@ static bool process_is_parent_of(pid_t pid){
 
 static void remove_child(pid_t pid){
   struct list_elem *e = NULL; 
-  for (e = list_begin (&thread_current()->children); e != list_end (&thread_current()->children);
+  for (e = list_begin (&thread_current()->enfants); e != list_end (&thread_current()->enfants);
        e = list_next (e))
     {
       if(list_entry(e, struct process_pid, elem)->pid == pid){
@@ -162,7 +162,7 @@ process_wait (pid_t child_tid)
 {
   if(!process_is_parent_of(child_tid))
     return -1;
-  remove_child(child_tid); // hack: remove the child from a process children list to make sure a process can't wait for a child twice
+  remove_child(child_tid); // hack: remove the child from a process enfants list to make sure a process can't wait for a child twice
   return ipc_pipe_read("wait", child_tid);
 }
 
@@ -183,7 +183,7 @@ process_exit (int status)
 
   uint32_t *pd;
 
-  //TODO: de-allocate 'children' and 'prog_name' attributes
+  //TODO: de-allocate 'enfants' and 'prog_name' attributes
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
