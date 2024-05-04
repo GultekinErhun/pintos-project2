@@ -229,18 +229,18 @@ thread_create (const char *name, int priority,
 }
 
 void
-thread_sleep (int64_t until)
+thread_sleep (int64_t jusqu_a)
 {
   struct list_elem *e;
   for (e = list_begin (&sleeping_threads); e != list_end (&sleeping_threads);
        e = list_next (e))
     {
       struct thread *t = list_entry (e, struct thread, elem);
-      if (until < t->heure_de_reveil){
+      if (jusqu_a < t->heure_de_reveil){
         break;
       }
   }
-  thread_current()->heure_de_reveil = until;
+  thread_current()->heure_de_reveil = jusqu_a;
   list_insert(e, &thread_current()->elem);
 
   enum intr_level old_level = intr_disable ();
