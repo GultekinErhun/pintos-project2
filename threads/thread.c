@@ -621,7 +621,7 @@ allocate_tid (void)
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 struct thread *
-thread_get(tid_t tid)
+thread_obtenir(tid_t tid)
 {
   struct list_elem *e;
   struct thread * dest_thread = NULL;
