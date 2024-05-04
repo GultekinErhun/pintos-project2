@@ -106,7 +106,7 @@ syscall_filesize_wrapper(struct intr_frame *f)
     return -1;
   }
   int fd = *(int *)(f->esp + 4);
-  f->eax = process_filesize(fd);
+  f->eax = processus_taille_fichier(fd);
   return 0;
 }
 
@@ -118,7 +118,7 @@ syscall_seek_wrapper(struct intr_frame *f)
   }
   int fd = *(int *)(f->esp + 4);
   unsigned pos = *(unsigned *)(f->esp + 8);
-  process_seek(fd, pos);
+  processus_deplacer(fd, pos);
   return 0;
 }
 
@@ -129,7 +129,7 @@ syscall_tell_wrapper(struct intr_frame *f)
     return -1;
   }
   int fd = *(int *)(f->esp + 4);
-  f->eax = process_tell(fd);
+  f->eax = processus_position(fd);
   return 0;
 }
 
@@ -166,7 +166,7 @@ syscall_open_wrapper(struct intr_frame *f)
     return -1;
   }
   char *str = *(char **)(f->esp + 4);
-  f->eax = process_open(str);
+  f->eax = processus_ouvrir(str);
   return 0;
 }
 
@@ -177,7 +177,7 @@ syscall_close_wrapper(struct intr_frame *f)
     return -1;
   }
   int fd = *(int *)(f->esp + 4);
-  process_close(fd);
+  processus_fermer(fd);
   return 0;
 }
 
@@ -245,7 +245,7 @@ syscall_write_wrapper(struct  intr_frame *f)
   if (!is_valid_pointer(buffer, 1) || !is_valid_pointer(buffer + size,1)){
     return -1;
   }
-  int written_size = process_write(fd, buffer, size);
+  int written_size = processus_ecrire(fd, buffer, size);
   f->eax = written_size;
   return 0;
 }
@@ -262,7 +262,7 @@ syscall_read_wrapper(struct  intr_frame *f)
   if (!is_valid_pointer(buffer, 1) || !is_valid_pointer(buffer + size,1)){
     return -1;
   }
-  int written_size = process_read(fd, buffer, size);
+  int written_size = processus_lire(fd, buffer, size);
   f->eax = written_size;
   return 0;
 }
