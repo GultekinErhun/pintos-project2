@@ -18,9 +18,9 @@ static int (*syscall_handlers[20]) (struct intr_frame *); /* Array of syscall fu
    Returns the byte value if successful, -1 if a segfault
    occurred. */
 static int
-get_user (const uint8_t *uaddr)
+prendre_utilisateur (const uint8_t *uaddr)
 {
-  if(!is_user_vaddr(uaddr))
+  if(!is_utilisateur_vaddr(uaddr))
     return -1;
   int result;
   asm ("movl $1f, %0; movzbl %1, %0; 1:"
@@ -32,14 +32,14 @@ get_user (const uint8_t *uaddr)
    UDST must be below PHYS_BASE.
    Returns true if successful, false if a segfault occurred. */
 static bool
-put_user (uint8_t *udst, uint8_t byte)
+mettre_utilisateur (uint8_t *udst, uint8_t byte)
 {
-  if(!is_user_vaddr(udst))
+  if(!is_utilisateur_vaddr(udst))
     return false;
-  int error_code;
+  int erreur_code;
   asm ("movl $1f, %0; movb %b2, %1; 1:"
-       : "=&a" (error_code), "=m" (*udst) : "q" (byte));
-  return error_code != -1;
+       : "=&a" (erreur_code), "=m" (*udst) : "q" (byte));
+  return erreur_code != -1;
 }
 
 
@@ -47,7 +47,7 @@ static bool is_valid_pointer(void * esp, uint8_t argc){
   uint8_t i = 0;
   for (; i < argc; ++i)
   {
-    if (get_user(((uint8_t *)esp)+i) == -1){
+    if (prendre_utilisateur(((uint8_t *)esp)+i) == -1){
       return false;
     }
   }
@@ -57,7 +57,7 @@ static bool is_valid_pointer(void * esp, uint8_t argc){
 static bool is_valid_string(void * str)
 {
   int ch=-1;
-  while((ch=get_user((uint8_t*)str++))!='\0' && ch!=-1);
+  while((ch=prendre_utilisateur((uint8_t*)str++))!='\0' && ch!=-1);
     if(ch=='\0')
       return true;
     else
