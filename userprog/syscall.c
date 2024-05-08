@@ -268,7 +268,7 @@ syscall_lire_wrapper(struct  intr_frame *f)
 }
 
 static void
-kill_program(void)
+terminer_programme(void)
 {
   thread_exit(-1);
 }
@@ -278,17 +278,17 @@ syscall_handler (struct intr_frame *f)
 {
 
   if (!is_valid_pointer(f->esp, 4)){
-    kill_program();
+    terminer_programme();
     return;
   }
   int syscall_num = * (int *)f->esp;
 
   if (syscall_num < 0 || syscall_num >= 20){
-    kill_program();
+    terminer_programme();
     return;
   }
   if(syscall_handlers[syscall_num](f) == -1){
-    kill_program();
+    terminer_programme();
     return;
   }
 }
