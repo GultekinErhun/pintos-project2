@@ -24,8 +24,8 @@
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
-static void extract_command_name(char * cmd_string, char *command_name);
-static void extract_command_args(char * cmd_string, char* argv[], int *argc);
+static void extraire_commande_nom(char * cmd_string, char *command_name);
+static void extraire_commande_args(char * cmd_string, char* argv[], int *argc);
 void processus_fermer_all(void);
 
 
@@ -62,7 +62,7 @@ process_execute (const char *file_name)
   char *cmd_name = malloc (strlen(fn_copy)+1);
   if (cmd_name == NULL)
     return TID_ERROR;
-  extract_command_name(fn_copy, cmd_name);
+  extraire_commande_nom(fn_copy, cmd_name);
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR){
@@ -312,7 +312,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   strlcpy(file_name_copy, file_name, CMD_LENGTH_MAX);
   char *argv[CMD_ARGS_MAX];
   int argc;
-  extract_command_args(file_name_copy, argv, &argc);
+  extraire_commande_args(file_name_copy, argv, &argc);
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
@@ -594,7 +594,7 @@ install_page (void *upage, void *kpage, bool writable)
 
 
 static void
-extract_command_name(char * cmd_string, char *command_name)
+extraire_commande_nom(char * cmd_string, char *command_name)
 {
   char *save_ptr;
   strlcpy (command_name, cmd_string, PGSIZE);
@@ -602,7 +602,7 @@ extract_command_name(char * cmd_string, char *command_name)
 }
 
 static void
-extract_command_args(char * cmd_string, char* argv[], int *argc)
+extraire_commande_args(char * cmd_string, char* argv[], int *argc)
 {
   char *save_ptr;
   argv[0] = strtok_r(cmd_string, " ", &save_ptr);
