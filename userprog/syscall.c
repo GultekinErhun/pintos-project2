@@ -66,7 +66,7 @@ static bool is_valid_string(void * str)
 
 
 static void
-syscall_exit (int status)
+syscall_sortir (int status)
 {
   thread_exit (status);
 }
@@ -84,7 +84,7 @@ syscall_exec(const char *file_name)
 }
 
 static int
-syscall_wait (pid_t pid)
+syscall_attendre (pid_t pid)
 {
   return processus_wait(pid);
 }
@@ -93,7 +93,7 @@ static bool creer_syscall (const char *file_name, unsigned initial_size)
 {
   return filesys_create (file_name, initial_size);
 }
-static bool syscall_remove (const char *file_name)
+static bool syscall_enlever (const char *file_name)
 {
   return filesys_remove (file_name);
 }
@@ -149,18 +149,18 @@ creer_syscall_wrapper(struct intr_frame *f)
 }
 
 static int
-syscall_remove_wrapper(struct intr_frame *f)
+syscall_enlever_wrapper(struct intr_frame *f)
 {
   if (!is_valid_pointer(f->esp +4, 4) || !is_valid_string(*(char **)(f->esp + 4))){
     return -1;
   }
   char *str = *(char **)(f->esp + 4);
-  f->eax = syscall_remove(str);
+  f->eax = syscall_enlever(str);
   return 0;
 }
 
 static int
-syscall_open_wrapper(struct intr_frame *f)
+syscall_ouvrir_wrapper(struct intr_frame *f)
 {
   if (!is_valid_pointer(f->esp +4, 4) || !is_valid_string(*(char **)(f->esp + 4))){
     return -1;
@@ -171,7 +171,7 @@ syscall_open_wrapper(struct intr_frame *f)
 }
 
 static int
-syscall_close_wrapper(struct intr_frame *f)
+syscall_fermer_wrapper(struct intr_frame *f)
 {
   if (!is_valid_pointer(f->esp +4, 4)){
     return -1;
@@ -182,14 +182,14 @@ syscall_close_wrapper(struct intr_frame *f)
 }
 
 static int
-syscall_exit_wrapper(struct intr_frame *f)
+syscall_sortir_wrapper(struct intr_frame *f)
 {
   int status;
   if (is_valid_pointer(f->esp + 4, 4))
     status = *((int*)f->esp+1);
   else
     return -1;
-  syscall_exit(status);
+  syscall_sortir(status);
   return 0;
 }
 
@@ -201,14 +201,14 @@ syscall_halt_wrapper(struct  intr_frame *f UNUSED)
 }
 
 static int
-syscall_wait_wrapper(struct  intr_frame *f)
+syscall_attendre_wrapper(struct  intr_frame *f)
 {
   pid_t pid;
   if (is_valid_pointer(f->esp + 4, 4))
     pid = *((int*)f->esp+1);
   else
     return -1;
-  f->eax = syscall_wait(pid);
+  f->eax = syscall_attendre(pid);
   return 0;
 }
 
@@ -234,7 +234,7 @@ syscall_exec_wrapper(struct  intr_frame *f)
 }
 
 static int
-syscall_write_wrapper(struct  intr_frame *f)
+syscall_ecrire_wrapper(struct  intr_frame *f)
 {
   if (!is_valid_pointer(f->esp + 4, 12)){
     return -1;
@@ -251,7 +251,7 @@ syscall_write_wrapper(struct  intr_frame *f)
 }
 
 static int
-syscall_read_wrapper(struct  intr_frame *f)
+syscall_lire_wrapper(struct  intr_frame *f)
 {
   if (!is_valid_pointer(f->esp + 4, 12)){
     return -1;
@@ -294,19 +294,19 @@ syscall_handler (struct intr_frame *f)
 }
 
 void
-syscall_init (void)
+syscall_initialiser (void)
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
-  syscall_handlers[SYS_EXIT] = &syscall_exit_wrapper;
-  syscall_handlers[SYS_WRITE] = &syscall_write_wrapper;
+  syscall_handlers[SYS_EXIT] = &syscall_sortir_wrapper;
+  syscall_handlers[SYS_WRITE] = &syscall_ecrire_wrapper;
   syscall_handlers[SYS_EXEC] = &syscall_exec_wrapper;
   syscall_handlers[SYS_HALT] = &syscall_halt_wrapper;
-  syscall_handlers[SYS_WAIT] = &syscall_wait_wrapper;
+  syscall_handlers[SYS_WAIT] = &syscall_attendre_wrapper;
   syscall_handlers[SYS_CREATE] = &creer_syscall_wrapper;
-  syscall_handlers[SYS_REMOVE] = &syscall_remove_wrapper;
-  syscall_handlers[SYS_OPEN] = &syscall_open_wrapper;
-  syscall_handlers[SYS_CLOSE] = &syscall_close_wrapper;
-  syscall_handlers[SYS_READ] = &syscall_read_wrapper;
+  syscall_handlers[SYS_REMOVE] = &syscall_enlever_wrapper;
+  syscall_handlers[SYS_OPEN] = &syscall_ouvrir_wrapper;
+  syscall_handlers[SYS_CLOSE] = &syscall_fermer_wrapper;
+  syscall_handlers[SYS_READ] = &syscall_lire_wrapper;
   syscall_handlers[SYS_FILESIZE] = &syscall_filesize_wrapper;
   syscall_handlers[SYS_SEEK] = &syscall_seek_wrapper;
   syscall_handlers[SYS_TELL] = &syscall_position_wrapper;
