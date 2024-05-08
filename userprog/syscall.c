@@ -86,7 +86,7 @@ syscall_exec(const char *file_name)
 static int
 syscall_attendre (pid_t pid)
 {
-  return processus_attendre(pid);
+  return process_wait(pid);
 }
 
 static bool creer_syscall (const char *file_name, unsigned initial_size)
