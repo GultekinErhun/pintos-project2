@@ -32,16 +32,16 @@ static struct list liste_ecriture;
 static struct list liste_lecture;
 
 void ipc_initialiser(void){
-    list_init(&read_list);
-    list_init(&write_list);
+    list_init(&liste_lecture);
+    list_init(&liste_ecriture);
 }
 
 int ipc_pipe_lecture(char * pipe_name, int ticket){
   // check whether there is already something written that correspond to the read 
   struct list_elem *e;
-  for (e = list_begin (&write_list); e != list_end (&write_list); e = list_next (e))
+  for (e = list_begin (&liste_ecriture); e != list_end (&liste_ecriture); e = list_next (e))
   {
-    struct write *w = list_entry (e, struct write, elem);
+    struct ecriture_struct *w = list_entry (e, struct ecriture_struct, elem);
     if(w->pipe_name == pipe_name && ticket == w->ticket){
       list_remove(e);
       int msg = w->msg;
@@ -50,17 +50,17 @@ int ipc_pipe_lecture(char * pipe_name, int ticket){
     }
   }
   // add an entry to the read list and block the caller
-  struct read *r = malloc(sizeof(struct read));
+  struct lecture_struct *r = malloc(sizeof(struct lecture_struct));
   sema_init(&r->sema, 0);
   r->ticket = ticket;
   r->pipe_name = pipe_name;
-  list_push_back(&read_list, &r->elem);
+  list_push_back(&liste_lecture, &r->elem);
   sema_down(&r->sema);
   // something written, re-parse the list again
   // TODO: possibility for code reuse
-  for (e = list_begin (&write_list); e != list_end (&write_list); e = list_next (e))
+  for (e = list_begin (&liste_ecriture); e != list_end (&liste_ecriture); e = list_next (e))
   {
-    struct write *w = list_entry (e, struct write, elem);
+    struct ecriture_struct *w = list_entry (e, struct ecriture_struct, elem);
     if(w->pipe_name == r->pipe_name && r->ticket == w->ticket){
       list_remove(e);
       list_remove(&r->elem);
@@ -74,17 +74,17 @@ int ipc_pipe_lecture(char * pipe_name, int ticket){
 }
 
 void ipc_pipe_ecriture(char *pipe_name, int ticket, int msg){
-  struct write *w= malloc(sizeof(struct write));
+  struct ecriture_struct *w= malloc(sizeof(struct ecriture_struct));
   w->ticket = ticket;
   w->pipe_name = pipe_name;
   w->msg = msg;
-  list_push_back(&write_list, &w->elem);
+  list_push_back(&liste_ecriture, &w->elem);
 
   // check whether there is someone waiting for the write to up the semaphore
   struct list_elem *e;
-  for (e = list_begin (&read_list); e != list_end (&read_list); e = list_next (e))
+  for (e = list_begin (&liste_lecture); e != list_end (&liste_lecture); e = list_next (e))
   {
-    struct read *r = list_entry (e, struct read, elem);
+    struct lecture_struct *r = list_entry (e, struct lecture_struct, elem);
     if(r->pipe_name == pipe_name && r->ticket == w->ticket){
       sema_up(&r->sema);
     }
