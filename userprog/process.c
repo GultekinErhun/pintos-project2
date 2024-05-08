@@ -29,7 +29,7 @@ static void extract_command_args(char * cmd_string, char* argv[], int *argc);
 void processus_fermer_all(void);
 
 
-struct process_pid{
+struct processus_pid{
   int pid;
   struct list_elem elem;
 };
@@ -80,7 +80,7 @@ process_execute (const char *file_name)
   int status = ipc_pipe_lecture("exec", tid);
   if (status != -1){
     // add the process as a child
-    struct process_pid *p = malloc(sizeof(struct process_pid));
+    struct processus_pid *p = malloc(sizeof(struct processus_pid));
     p->pid = status;
     list_push_back(&thread_current()->enfants, &p->elem);
   }
@@ -129,7 +129,7 @@ static bool process_is_parent_of(pid_t pid){
   for (e = list_begin (&thread_current()->enfants); e != list_end (&thread_current()->enfants);
        e = list_next (e))
     {
-      if(list_entry(e, struct process_pid, elem)->pid == pid){
+      if(list_entry(e, struct processus_pid, elem)->pid == pid){
         return true;
       };
     }
@@ -141,7 +141,7 @@ static void remove_child(pid_t pid){
   for (e = list_begin (&thread_current()->enfants); e != list_end (&thread_current()->enfants);
        e = list_next (e))
     {
-      if(list_entry(e, struct process_pid, elem)->pid == pid){
+      if(list_entry(e, struct processus_pid, elem)->pid == pid){
         break;
       };
     }
