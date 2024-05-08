@@ -20,7 +20,7 @@ static int (*syscall_handlers[20]) (struct intr_frame *); /* Array of syscall fu
 static int
 prendre_utilisateur (const uint8_t *uaddr)
 {
-  if(!is_utilisateur_vaddr(uaddr))
+  if(!is_user_vaddr(uaddr))
     return -1;
   int result;
   asm ("movl $1f, %0; movzbl %1, %0; 1:"
@@ -34,7 +34,7 @@ prendre_utilisateur (const uint8_t *uaddr)
 static bool
 mettre_utilisateur (uint8_t *udst, uint8_t byte)
 {
-  if(!is_utilisateur_vaddr(udst))
+  if(!is_user_vaddr(udst))
     return false;
   int erreur_code;
   asm ("movl $1f, %0; movb %b2, %1; 1:"
