@@ -89,7 +89,7 @@ syscall_wait (pid_t pid)
   return process_wait(pid);
 }
 
-static bool syscall_create (const char *file_name, unsigned initial_size)
+static bool creer_syscall (const char *file_name, unsigned initial_size)
 {
   return filesys_create (file_name, initial_size);
 }
@@ -134,7 +134,7 @@ syscall_tell_wrapper(struct intr_frame *f)
 }
 
 static int
-syscall_create_wrapper(struct intr_frame *f)
+creer_syscall_wrapper(struct intr_frame *f)
 {
   if (
     !is_valid_pointer(f->esp +4, 4) ||
@@ -144,7 +144,7 @@ syscall_create_wrapper(struct intr_frame *f)
   }
   char *str = *(char **)(f->esp + 4);
   unsigned size = *(int *)(f->esp + 8);
-  f->eax = syscall_create(str, size);
+  f->eax = creer_syscall(str, size);
   return 0;
 }
 
@@ -302,7 +302,7 @@ syscall_init (void)
   syscall_handlers[SYS_EXEC] = &syscall_exec_wrapper;
   syscall_handlers[SYS_HALT] = &syscall_halt_wrapper;
   syscall_handlers[SYS_WAIT] = &syscall_wait_wrapper;
-  syscall_handlers[SYS_CREATE] = &syscall_create_wrapper;
+  syscall_handlers[SYS_CREATE] = &creer_syscall_wrapper;
   syscall_handlers[SYS_REMOVE] = &syscall_remove_wrapper;
   syscall_handlers[SYS_OPEN] = &syscall_open_wrapper;
   syscall_handlers[SYS_CLOSE] = &syscall_close_wrapper;
