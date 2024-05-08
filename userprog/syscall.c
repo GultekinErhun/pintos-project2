@@ -123,7 +123,7 @@ syscall_seek_wrapper(struct intr_frame *f)
 }
 
 static int
-syscall_tell_wrapper(struct intr_frame *f)
+syscall_position_wrapper(struct intr_frame *f)
 {
   if (!is_valid_pointer(f->esp +4, 4)){
     return -1;
@@ -309,6 +309,6 @@ syscall_init (void)
   syscall_handlers[SYS_READ] = &syscall_read_wrapper;
   syscall_handlers[SYS_FILESIZE] = &syscall_filesize_wrapper;
   syscall_handlers[SYS_SEEK] = &syscall_seek_wrapper;
-  syscall_handlers[SYS_TELL] = &syscall_tell_wrapper;
+  syscall_handlers[SYS_TELL] = &syscall_position_wrapper;
 }
 
