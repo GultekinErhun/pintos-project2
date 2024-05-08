@@ -80,7 +80,7 @@ syscall_halt(void)
 static pid_t
 syscall_exec(const char *file_name)
 {
-  return processus_execute (file_name);
+  return process_execute  (file_name);
 }
 
 static int
