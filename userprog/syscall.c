@@ -294,7 +294,7 @@ syscall_handler (struct intr_frame *f)
 }
 
 void
-syscall_initialiser (void)
+syscall_init (void)
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
   syscall_handlers[SYS_EXIT] = &syscall_sortir_wrapper;
