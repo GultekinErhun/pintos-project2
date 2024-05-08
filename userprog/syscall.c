@@ -80,13 +80,13 @@ syscall_halt(void)
 static pid_t
 syscall_exec(const char *file_name)
 {
-  return process_execute (file_name);
+  return processus_execute (file_name);
 }
 
 static int
 syscall_wait (pid_t pid)
 {
-  return process_wait(pid);
+  return processus_wait(pid);
 }
 
 static bool creer_syscall (const char *file_name, unsigned initial_size)
