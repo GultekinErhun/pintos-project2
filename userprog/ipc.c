@@ -12,18 +12,18 @@ note that reading/writing can happen in any order (read->write or write->read)
 #include "userprog/ipc.h"
 #include "threads/malloc.h"
 
-// pipe is identified by a pipe name and a ticket number.
+// pipe is identified by a pipe_nom and a ticket number.
 
 struct ecriture_struct {
     int ticket;
-    char *pipe_name;
+    char *pipe_nom;
     int msg; // return value to the reader, supporting only int for now since it's sufficient for the current use cases, and relieve from memory management
     struct list_elem elem;
 };
 
 struct lecture_struct {
     int ticket;
-    char *pipe_name;
+    char *pipe_nom;
     struct semaphore sema; // the semaphore sync primitive is used to implement the blocking
     struct list_elem elem;
 };
@@ -36,13 +36,13 @@ void ipc_initialiser(void){
     list_init(&liste_ecriture);
 }
 
-int ipc_pipe_lecture(char * pipe_name, int ticket){
+int ipc_pipe_lecture(char * pipe_nom, int ticket){
   // check whether there is already something written that correspond to the read 
   struct list_elem *e;
   for (e = list_begin (&liste_ecriture); e != list_end (&liste_ecriture); e = list_next (e))
   {
     struct ecriture_struct *w = list_entry (e, struct ecriture_struct, elem);
-    if(w->pipe_name == pipe_name && ticket == w->ticket){
+    if(w->pipe_nom == pipe_nom && ticket == w->ticket){
       list_remove(e);
       int msg = w->msg;
       free(w);
@@ -53,7 +53,7 @@ int ipc_pipe_lecture(char * pipe_name, int ticket){
   struct lecture_struct *r = malloc(sizeof(struct lecture_struct));
   sema_init(&r->sema, 0);
   r->ticket = ticket;
-  r->pipe_name = pipe_name;
+  r->pipe_nom = pipe_nom;
   list_push_back(&liste_lecture, &r->elem);
   sema_down(&r->sema);
   // something written, re-parse the list again
@@ -61,7 +61,7 @@ int ipc_pipe_lecture(char * pipe_name, int ticket){
   for (e = list_begin (&liste_ecriture); e != list_end (&liste_ecriture); e = list_next (e))
   {
     struct ecriture_struct *w = list_entry (e, struct ecriture_struct, elem);
-    if(w->pipe_name == r->pipe_name && r->ticket == w->ticket){
+    if(w->pipe_nom == r->pipe_nom && r->ticket == w->ticket){
       list_remove(e);
       list_remove(&r->elem);
       int msg = w->msg;
@@ -73,10 +73,10 @@ int ipc_pipe_lecture(char * pipe_name, int ticket){
   NOT_REACHED ();
 }
 
-void ipc_pipe_ecriture(char *pipe_name, int ticket, int msg){
+void ipc_pipe_ecriture(char *pipe_nom, int ticket, int msg){
   struct ecriture_struct *w= malloc(sizeof(struct ecriture_struct));
   w->ticket = ticket;
-  w->pipe_name = pipe_name;
+  w->pipe_nom = pipe_nom;
   w->msg = msg;
   list_push_back(&liste_ecriture, &w->elem);
 
@@ -85,7 +85,7 @@ void ipc_pipe_ecriture(char *pipe_name, int ticket, int msg){
   for (e = list_begin (&liste_lecture); e != list_end (&liste_lecture); e = list_next (e))
   {
     struct lecture_struct *r = list_entry (e, struct lecture_struct, elem);
-    if(r->pipe_name == pipe_name && r->ticket == w->ticket){
+    if(r->pipe_nom == pipe_nom && r->ticket == w->ticket){
       sema_up(&r->sema);
     }
   }
