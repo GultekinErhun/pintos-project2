@@ -59,21 +59,21 @@ process_execute (const char *file_name)
   strlcpy (fn_copy, file_name, PGSIZE);
 
   // make another copy of file name, which will be saved as a property in the process structure
-  char *cmd_name = malloc (strlen(fn_copy)+1);
-  if (cmd_name == NULL)
+  char *cmd_nom = malloc (strlen(fn_copy)+1);
+  if (cmd_nom == NULL)
     return TID_ERROR;
-  extraire_commande_nom(fn_copy, cmd_name);
+  extraire_commande_nom(fn_copy, cmd_nom);
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR){
     palloc_free_page (fn_copy);
-    free(cmd_name);
+    free(cmd_nom);
     return -1;
   }
   // update thread with userprog properties
   struct thread *t = thread_obtenir(tid);
   t->prochain_fd = 2;
-  t->nom_du_prog = cmd_name;
+  t->nom_du_prog = cmd_nom;
   list_init(&t->table_des_desc);
   list_init(&t->enfants);
 
